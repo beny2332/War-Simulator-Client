@@ -1,20 +1,29 @@
-import React, { useEffect, useState } from "react"
-import { useAppDispatch, useAppSelector } from "../../redux/store"
-import { fetchLogin } from "../../redux/slices/userSlice"
-import { useNavigate } from "react-router-dom"
+import React, { useState } from "react";
+import { useAppDispatch } from "../../redux/store";
+import { fetchLogin } from "../../redux/slices/userSlice";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const dispatch = useAppDispatch()
-  const { user } = useAppSelector((state) => state.user)
-  const navigate = useNavigate()
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
+  const dispatch = useAppDispatch();
+//   const { user } = useAppSelector((state) => state.user);
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-  useEffect(() => {
-    if (user?._id) {
-        navigate(user.role === 'defense' ? '/defense-dashboard' : '/attack-dashboard')
+  const handleLogin = async () => {
+    const resultAction = await dispatch(fetchLogin({ username, password }));
+    if (fetchLogin.fulfilled.match(resultAction)) {
+      const user = resultAction.payload.user;
+      if (user.role === "attack") {
+        navigate("/attack-dashboard");
+      } else if (user.role === "defense") {
+        navigate("/defense-dashboard");
+      }
+    } else {
+      // Handle login error if needed
+      console.error(resultAction.payload);
     }
-  }, [user, navigate])
+  };
 
   return (
     <div className="login">
@@ -32,10 +41,9 @@ export default function Login() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      <button onClick={() => dispatch(fetchLogin({ username, password }))}>
+      <button onClick={handleLogin}>
         Login
       </button>
     </div>
-  )
+  );
 }
-
