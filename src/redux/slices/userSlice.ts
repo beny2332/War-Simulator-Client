@@ -1,37 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { IUser } from '../../types/interfaces/user'; // Assuming you have a user type defined
+import { DataStatus } from '../../types/redux'; // Assuming you have DataStatus defined
 
-
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:1234';
-
-export const fetchRegister = createAsyncThunk(
-  'user/fetchRegister',
-  async (
-    { username, password, role, organization, region }: 
-    { username: string; password: string; role: 'defense' | 'attack'; organization: string; region: string },
-    thunkApi
-  ) => {
-    try {
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password, role, organization, region }),
-      });
-
-      if (!response.ok) {
-        return thunkApi.rejectWithValue("Can't register, please try again");
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (err) {
-      return thunkApi.rejectWithValue("Can't register, please try again");
-    }
-  }
-);
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:1234/api';
 
 export const fetchLogin = createAsyncThunk(
   'user/fetchLogin',
@@ -54,45 +25,63 @@ export const fetchLogin = createAsyncThunk(
       }
 
       const data = await response.json();
-      return data;
+      localStorage.setItem("token", data.token); // Store the token in local storage
+      return data // Return the user details
     } catch (err) {
       return thunkApi.rejectWithValue("Can't login, please try again");
     }
   }
 );
 
-export const fetchUser = createAsyncThunk(
-  'user/fetchUser',
-  async (_, thunkApi) => {
+export const fetchRegister = createAsyncThunk(
+  'user/fetchRegister',
+  async (
+    { username, password, role, organization, region }: {
+      username: string;
+      password: string;
+      role: string;
+      organization: string;
+      region: string;
+    },
+    thunkApi
+  ) => {
+    const requestBody = { username, password, role, organization, region };
+    console.log("Sending request with body:", requestBody);
+  
     try {
-      const response = await fetch(`${API_URL}/auth/user`, {
-        method: 'GET',
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
-        return thunkApi.rejectWithValue("Can't fetch user data, please try again");
+        const errorText = await response.text();
+        console.log("Server error response:", errorText);
+        return thunkApi.rejectWithValue("Can't register, please try again");
       }
 
       const data = await response.json();
+      localStorage.setItem("token", data.token);
       return data;
     } catch (err) {
-      return thunkApi.rejectWithValue("Can't fetch user data, please try again");
+      console.log("Registration error:", err);
+      return thunkApi.rejectWithValue("Can't register, please try again");
     }
-  }
-);
+  });
+
 
 interface UserState {
   user: IUser | null;
-  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  status: DataStatus.IDLE | DataStatus.LOADING | DataStatus.SUCCSES | DataStatus.FAILED;
   error: string | null;
 }
 
 const initialState: UserState = {
   user: null,
-  status: 'idle',
+  status: DataStatus.IDLE,
   error: null,
 };
 
@@ -103,36 +92,25 @@ const userSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchRegister.pending, (state) => {
-        state.status = 'loading';
+        state.status = DataStatus.LOADING;
       })
       .addCase(fetchRegister.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.user = action.payload;
+        state.user = action.payload.user;
+        state.status = DataStatus.SUCCSES;
       })
       .addCase(fetchRegister.rejected, (state, action) => {
-        state.status = 'failed';
+        state.status = DataStatus.FAILED;
         state.error = action.payload as string;
       })
       .addCase(fetchLogin.pending, (state) => {
-        state.status = 'loading';
+        state.status = DataStatus.LOADING;
       })
       .addCase(fetchLogin.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.user = action.payload;
+        state.status = DataStatus.SUCCSES;
+        state.user = action.payload.user;
       })
       .addCase(fetchLogin.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload as string;
-      })
-      .addCase(fetchUser.pending, (state) => {
-        state.status = 'loading';
-      })
-      .addCase(fetchUser.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.user = action.payload;
-      })
-      .addCase(fetchUser.rejected, (state, action) => {
-        state.status = 'failed';
+        state.status = DataStatus.FAILED;
         state.error = action.payload as string;
       });
   },
