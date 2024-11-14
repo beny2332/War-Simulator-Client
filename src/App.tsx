@@ -11,7 +11,7 @@ export default function App() {
   return (
     <div>
       <Routes>
-        <Route path="/" element={<Navigate to="/register" />} />
+        <Route path="/" element={<Navigate to="/Login" />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
         <Route
