@@ -41,6 +41,7 @@ export default function Login() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
+      <button onClick={() => navigate("/register")}>new to the system? register here</button>
       <button onClick={handleLogin}>
         Login
       </button>
