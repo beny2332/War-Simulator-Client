@@ -1,12 +1,26 @@
-import { Document, ObjectId, Types } from "mongoose"
 import { RegionsEnum } from "../enums/regions"
 
-export interface IUser extends Document {
+export interface Missile {
+  _id: string;
+  name: string;
+  speed: number;
+  price: number;
+}
+
+export interface Resource {
+  missile: Missile;
+  _id: string;
+  name: string;
+  amount: number;
+}
+
+export interface IUser {
+  id?: string
   username: string
   password: string
   role: "defense" | "attack"
-  organization: Types.ObjectId
+  organization: string
   region?: RegionsEnum
-  interceptedMissiles: Types.ObjectId[]
-  resources: { name: string; amount: number }[]
+  interceptedMissiles: string[]
+  resources: Resource[]
 }

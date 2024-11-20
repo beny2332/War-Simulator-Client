@@ -1,10 +1,13 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-
+import { Resource } from '../../types/interfaces/user'
+import { RegionsEnum } from '../../types/enums/regions'
+import { Attack } from '../../types/interfaces/attack';
+import { DataStatus } from '../../types/redux'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:1234/api';
 
 export const launchAttack = createAsyncThunk(
   'attack/launch',
-  async (attackData: { missileType: string; targetRegion: string;}) => {
+  async (attackData: {missileType: string, targetRegion: string}) => {
     const token = localStorage.getItem('token');
     if (!token) {
       throw new Error('No authentication token found');
@@ -30,25 +33,41 @@ export const launchAttack = createAsyncThunk(
   }
 );
 
+interface attackState{
+  status: DataStatus,
+  error: string | null,
+  attacks: Attack[]
+}
+
+const initialState: attackState ={
+  status: DataStatus.IDLE,
+  error: null,
+  attacks: [{
+    userId: 'a',
+    id: 'a',
+    missileType: 'a',
+    target: 'a',
+    status: '',
+    speed: 0,
+    startTime: 0
+  }]
+}
+
 const attackSlice = createSlice({
   name: 'attack',
-  initialState: {
-    status: 'idle',
-    error: null,
-    currentAttack: null
-  },
+  initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(launchAttack.pending, (state) => {
-        state.status = 'loading';
+        state.status = DataStatus.LOADING;
       })
       .addCase(launchAttack.fulfilled, (state, action) => {
-        state.status = 'succeeded';
-        state.currentAttack = action.payload;
+        state.status = DataStatus.SUCCSES;
+        state.attacks.push(action.payload);
       })
       .addCase(launchAttack.rejected, (state, action) => {
-        state.status = 'failed';
+        state.status = DataStatus.FAILED;
       });
   }
 });
