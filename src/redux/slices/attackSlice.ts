@@ -64,7 +64,7 @@ const attackSlice = createSlice({
       })
       .addCase(launchAttack.fulfilled, (state, action) => {
         state.status = DataStatus.SUCCSES;
-        state.attacks.push(action.payload);
+        state.attacks.push(action.payload.data);
       })
       .addCase(launchAttack.rejected, (state, action) => {
         state.status = DataStatus.FAILED;

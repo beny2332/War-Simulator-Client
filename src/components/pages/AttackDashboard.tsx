@@ -8,7 +8,7 @@ import { Attack } from "../../types/interfaces/attack"
 
 
 const AttackRow = ({ attack }: { attack: Attack }) => {
-  const timeLeft = useCountdown(attack.speed / 60)
+  const timeLeft = useCountdown(attack.speed )
 
   return (
     <tr>
@@ -32,7 +32,7 @@ export default function AttackDashboard() {
   const [attackType, setAttackType] = useState("")
   const [targetRegion, setTargetRegion] = useState("North")
   const attacks = useAppSelector((state)=> state.attack.attacks)
-  
+
   // useEffect(() => {
   //   if (user?.id) {
   //     socket.emit("joinRoom", { role: "attack", userId: user.id })
